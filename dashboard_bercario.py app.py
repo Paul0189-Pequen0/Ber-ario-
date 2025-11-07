@@ -211,3 +211,4 @@ st.markdown(f"""
         <div>🕒 Última atualização: <b style="color:#66fcf1;">{ultima_atualizacao_local}</b></div>
     </div>
 """, unsafe_allow_html=True)
+
