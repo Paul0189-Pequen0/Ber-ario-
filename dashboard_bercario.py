@@ -22,7 +22,7 @@ if "autenticado" not in st.session_state:
 if not st.session_state["autenticado"]:
     st.title("🔐 Acesso Restrito")
     usuario = st.text_input("Paulo")
-    senha = st.text_input("Senha", type="engecomp")
+    senha = st.text_input("engecomp", type="password")
     if st.button("Entrar"):
         if usuario in USERS and USERS[usuario] == senha:
             st.session_state["autenticado"] = True
