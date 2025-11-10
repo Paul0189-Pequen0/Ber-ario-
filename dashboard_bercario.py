@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import requests
+import os
 from datetime import datetime
 
 # ===========================
@@ -81,8 +82,7 @@ except Exception as e:
 # ===========================
 # SIDEBAR - LOGO + MENU
 # ===========================
-st.sidebar.image("Logo.jpg", use_container_width=True,)
-
+st.sidebar.image(os.path.join(os.path.dirname(__file__), "Logo.jpg"), width=150)
 st.sidebar.markdown("### Engecomp Tecnologia")
 st.sidebar.markdown("_Monitoramento Remotas Berçário_")
 st.sidebar.markdown("---")
@@ -97,7 +97,6 @@ pagina = st.sidebar.radio(
 # ===========================
 col_logo, col_titulo = st.columns([1, 6])
 with col_logo:
-import os
 st.image(os.path.join(os.path.dirname(__file__), "Logo.jpg"), width=100)
 with col_titulo:
     st.markdown(
