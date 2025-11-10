@@ -12,7 +12,8 @@ import streamlit as st
 # Usuários e senhas (pode editar aqui)
 USERS = {
     "suporte": "engecomp",
-    "admin": "ph@2025"
+    "Suporte_adm": "1111",
+    "suporte_01": "0000"
 }
 
 # Cria o formulário de login
@@ -21,8 +22,8 @@ if "autenticado" not in st.session_state:
 
 if not st.session_state["autenticado"]:
     st.title("🔐 Acesso Restrito")
-    usuario = st.text_input("Paulo")
-    senha = st.text_input("engecomp", type="password")
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
     if st.button("Entrar"):
         if usuario in USERS and USERS[usuario] == senha:
             st.session_state["autenticado"] = True
