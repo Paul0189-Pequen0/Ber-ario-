@@ -5,7 +5,6 @@ import requests
 import os
 from datetime import datetime
 import base64
-import os
 
 # Usuários e senhas (você pode editar aqui)
 USERS = {
@@ -27,13 +26,17 @@ if os.path.exists(logo_path):
 else:
     logo_base64 = ""
 
-# ======== SISTEMA DE LOGIN ========
-if "autenticado" not in st.session_state:
-    st.session_state["autenticado"] = False
+# ==================================
+# SISTEMA DE LOGIN SIMPLES COM FUNDO
+# ==================================
+import streamlit as st
+import os
 
-if not st.session_state["autenticado"]:
-    # CSS do fundo de login
-   st.markdown(f"""
+# Caminho da imagem de fundo
+BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), "logo_login.jpg")
+
+# CSS para o fundo
+st.markdown(f"""
     <style>
     [data-testid="stAppViewContainer"] {{
         background: url('file://{BACKGROUND_PATH}');
@@ -43,10 +46,23 @@ if not st.session_state["autenticado"]:
     }}
     </style>
 """, unsafe_allow_html=True)
-    # Formulário de login
+
+# Usuários e senhas (pode editar aqui)
+USERS = {
+    "suporte": "engecomp",
+    "Suporte_adm": "1111",
+    "suporte_01": "0000"
+}
+
+# Controle de sessão
+if "autenticado" not in st.session_state:
+    st.session_state["autenticado"] = False
+
+if not st.session_state["autenticado"]:
     st.title("🔐 Acesso Restrito")
     usuario = st.text_input("Usuário")
     senha = st.text_input("Senha", type="password")
+
     if st.button("Entrar"):
         if usuario in USERS and USERS[usuario] == senha:
             st.session_state["autenticado"] = True
@@ -55,6 +71,7 @@ if not st.session_state["autenticado"]:
         else:
             st.error("Usuário ou senha incorretos.")
     st.stop()
+
 
 
 # ===========================
