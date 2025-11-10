@@ -4,6 +4,33 @@ import plotly.express as px
 import requests
 import os
 from datetime import datetime
+# ==================================
+# SISTEMA DE LOGIN SIMPLES
+# ==================================
+import streamlit as st
+
+# Usuários e senhas (pode editar aqui)
+USERS = {
+    "suporte": "engecomp",
+    "admin": "ph@2025"
+}
+
+# Cria o formulário de login
+if "autenticado" not in st.session_state:
+    st.session_state["autenticado"] = False
+
+if not st.session_state["autenticado"]:
+    st.title("🔐 Acesso Restrito")
+    usuario = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
+    if st.button("Entrar"):
+        if usuario in USERS and USERS[usuario] == senha:
+            st.session_state["autenticado"] = True
+            st.success("✅ Login realizado com sucesso!")
+            st.rerun()
+        else:
+            st.error("Usuário ou senha incorretos.")
+    st.stop()
 
 # ===========================
 # CONFIGURAÇÕES INICIAIS
@@ -52,7 +79,7 @@ SHEET_URL = "https://docs.google.com/spreadsheets/d/18TKqjh2HkbhSsEC8cmj1Ok_NPaR
 @st.cache_data
 def carregar_dados():
     df = pd.read_csv(SHEET_URL)
-    colunas_esperadas = ["Status", "Cliente", "Sub Cliente", "ID", "Ult Dado", "Numero de telefone cliente", "Observação"]
+    colunas_esperadas = ["Status", "Cliente", "Sub Cliente", "ID", "Ult Dado", "Observação"]
     for c in colunas_esperadas:
         if c not in df.columns:
             df[c] = ""
