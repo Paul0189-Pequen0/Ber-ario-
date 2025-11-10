@@ -97,7 +97,7 @@ pagina = st.sidebar.radio(
 # ===========================
 col_logo, col_titulo = st.columns([1, 6])
 with col_logo:
-st.image(os.path.join(os.path.dirname(__file__), "Logo.jpg"), width=100)
+    st.image(os.path.join(os.path.dirname(__file__), "Logo.jpg"), width=100)
 with col_titulo:
     st.markdown(
         "<h1 style='color:#66fcf1; margin-bottom:0;'>📡 Dashboard de Monitoramento</h1>"
