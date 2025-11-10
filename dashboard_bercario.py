@@ -4,23 +4,55 @@ import plotly.express as px
 import requests
 import os
 from datetime import datetime
-# ==================================
-# SISTEMA DE LOGIN SIMPLES
-# ==================================
-import streamlit as st
+import base64
+import os
 
-# Usuários e senhas (pode editar aqui)
+# Usuários e senhas (você pode editar aqui)
 USERS = {
     "suporte": "engecomp",
     "Suporte_adm": "1111",
     "suporte_01": "0000"
 }
 
-# Cria o formulário de login
+# ======== CONVERTER IMAGEM LOCAL PARA BASE64 ========
+def get_base64(file_path):
+    with open(file_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# Caminho da imagem local
+logo_path = os.path.join(os.path.dirname(__file__), "Logo.jpg")
+if os.path.exists(logo_path):
+    logo_base64 = get_base64(logo_path)
+else:
+    logo_base64 = ""
+
+# ======== SISTEMA DE LOGIN ========
 if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
 
 if not st.session_state["autenticado"]:
+    # CSS do fundo de login
+    st.markdown(f"""
+        <style>
+        [data-testid="stAppViewContainer"] {{
+            background: url("data:image/jpg;base64,{logo_base64}") no-repeat center center fixed;
+            background-size: contain;
+            background-color: #0b0c10;
+        }}
+        div[data-testid="stForm"] {{
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.4);
+        }}
+        h1 {{
+            color: #66fcf1;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Formulário de login
     st.title("🔐 Acesso Restrito")
     usuario = st.text_input("Usuário")
     senha = st.text_input("Senha", type="password")
@@ -32,6 +64,7 @@ if not st.session_state["autenticado"]:
         else:
             st.error("Usuário ou senha incorretos.")
     st.stop()
+
 
 # ===========================
 # CONFIGURAÇÕES INICIAIS
