@@ -33,25 +33,16 @@ if "autenticado" not in st.session_state:
 
 if not st.session_state["autenticado"]:
     # CSS do fundo de login
-    st.markdown(f"""
-        <style>
-        [data-testid="stAppViewContainer"] {{
-            background: url("data:image/jpg;base64,{logo_base64}") no-repeat center center fixed;
-            background-size: contain;
-            background-color: #0b0c10;
-        }}
-        div[data-testid="stForm"] {{
-            background: rgba(0, 0, 0, 0.7);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.4);
-        }}
-        h1 {{
-            color: #66fcf1;
-        }}
-        </style>
-    """, unsafe_allow_html=True)
-
+   st.markdown(f"""
+    <style>
+    [data-testid="stAppViewContainer"] {{
+        background: url('file://{BACKGROUND_PATH}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
+    </style>
+""", unsafe_allow_html=True)
     # Formulário de login
     st.title("🔐 Acesso Restrito")
     usuario = st.text_input("Usuário")
