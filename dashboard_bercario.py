@@ -21,7 +21,7 @@ def get_base64(file_path):
     return base64.b64encode(data).decode()
 
 # Caminho da imagem local
-logo_path = os.path.join(os.path.dirname(__file__), "Logo.jpg")
+logo_path = os.path.join(os.path.dirname(__file__), "Logo_completo.jpg")
 if os.path.exists(logo_path):
     logo_base64 = get_base64(logo_path)
 else:
