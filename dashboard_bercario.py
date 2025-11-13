@@ -5,6 +5,7 @@ import requests
 import os
 from datetime import datetime
 import base64
+from PIL import Image
 
 # Usuários e senhas (você pode editar aqui)
 USERS = {
@@ -29,9 +30,6 @@ else:
 # ==================================
 # SISTEMA DE LOGIN SIMPLES COM FUNDO
 # ==================================
-import streamlit as st
-import os
-
 # Caminho da imagem de fundo
 BACKGROUND_PATH = os.path.join(os.path.dirname(__file__), "logo_login.jpg")
 
@@ -46,14 +44,6 @@ st.markdown(f"""
     }}
     </style>
 """, unsafe_allow_html=True)
-
-# Usuários e senhas (pode editar aqui)
-USERS = {
-    "suporte": "engecomp",
-    "Suporte_adm": "1111",
-    "suporte_01": "0000"
-}
-
 # Controle de sessão
 if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
@@ -158,7 +148,7 @@ st.sidebar.markdown("---")
 
 pagina = st.sidebar.radio(
     "📂 Escolha uma página:",
-    ["Visão Geral", "Subclientes"]
+    ["Visão Geral", "Subclientes", "Comparar"]
 )
 
 # ===========================
@@ -222,7 +212,6 @@ if pagina == "Visão Geral":
 
     # Use config para opções de plotly (sem o argumento deprecado)
     st.plotly_chart(fig, use_container_width=True, config={"responsive": True})
-
 # ===========================
 # PÁGINA 2 - SUBCLIENTES
 # ===========================
@@ -263,6 +252,162 @@ elif pagina == "Subclientes":
 
     st.subheader(f"📋 Tabela de Remotas de {cliente_selecionado}")
     st.dataframe(df_sub, use_container_width=True, height=400)
+
+# ===========================
+# 📄 COMPARAR E ATUALIZAR PLANILHAS (COM HISTÓRICO + LAYOUT MELHORADO)
+# ===========================
+
+elif pagina == "Comparar":
+    st.header("📊 Atualizar Base com Novas Remotas")
+
+    st.markdown("""
+    Faça upload da **nova planilha (.xlsx)**.  
+    O sistema vai:
+    - Comparar com `novembro bercario.xlsx` (planilha base);
+    - Adicionar automaticamente as **Remotas que Entraram 😁**;
+    - Identificar as **Remotas que Saíram 😢**;
+    - Gerar planilhas atualizadas e o histórico mensal.
+    """)
+
+    novo_arquivo = st.file_uploader("📤 Envie a nova planilha (.xlsx)", type=["xlsx"])
+
+    if novo_arquivo is not None:
+        try:
+            # Carrega base e nova planilha
+            df_base = pd.read_excel("novembro bercario.xlsx")
+            df_novo = pd.read_excel(novo_arquivo)
+            st.success("✅ Nova planilha carregada com sucesso!")
+
+            # Define colunas padrão (estrutura da base)
+            colunas_esperadas = ["Status", "Cliente", "Sub Cliente", "ID", "Ult Dado", "Observação"]
+            for c in colunas_esperadas:
+                if c not in df_base.columns:
+                    df_base[c] = ""
+                if c not in df_novo.columns:
+                    df_novo[c] = ""
+
+            # Reordena colunas e normaliza IDs
+            df_base = df_base[colunas_esperadas]
+            df_novo = df_novo[colunas_esperadas]
+
+            df_base["ID"] = df_base["ID"].astype(str).str.strip().str.replace(".0", "", regex=False)
+            df_novo["ID"] = df_novo["ID"].astype(str).str.strip().str.replace(".0", "", regex=False)
+
+            # Remove duplicados
+            df_base = df_base.drop_duplicates(subset="ID")
+            df_novo = df_novo.drop_duplicates(subset="ID")
+
+            # Filtra novos e removidos (remotas)
+            ids_base = set(df_base["ID"])
+            ids_novo = set(df_novo["ID"])
+
+            df_remotas_entraram = df_novo[~df_novo["ID"].isin(ids_base)].copy()
+            df_remotas_sairam = df_base[~df_base["ID"].isin(ids_novo)].copy()
+
+            # Garante colunas no padrão
+            for df_temp in [df_remotas_entraram, df_remotas_sairam]:
+                for c in colunas_esperadas:
+                    if c not in df_temp.columns:
+                        df_temp[c] = ""
+                df_temp = df_temp[colunas_esperadas]
+
+            # Atualiza base
+            df_atualizada = pd.concat([df_base, df_remotas_entraram], ignore_index=True)
+            df_atualizada = df_atualizada[colunas_esperadas]
+
+            # Salva resultados
+            df_atualizada.to_excel("Atualizada.xlsx", index=False)
+            df_remotas_entraram.to_excel("Remotas_Entraram.xlsx", index=False)
+            df_remotas_sairam.to_excel("Remotas_Sairam.xlsx", index=False)
+
+            count_entraram = len(df_remotas_entraram)
+            count_sairam = len(df_remotas_sairam)
+
+            # ==============================
+            # 📊 Exibe resultados lado a lado
+            # ==============================
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("### 🟢 Remotas que Entraram 😁")
+                if count_entraram > 0:
+                    st.success(f"{count_entraram} remotas novas adicionadas")
+                    st.dataframe(df_remotas_entraram, use_container_width=True, height=300)
+                    st.download_button(
+                        "⬇️ Baixar Remotas_Entraram.xlsx",
+                        data=open("Remotas_Entraram.xlsx", "rb"),
+                        file_name="Remotas_Entraram.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                else:
+                    st.info("Nenhuma remota nova encontrada.")
+
+            with col2:
+                st.markdown("### 🔴 Remotas que Saíram 🚀")
+                if count_sairam > 0:
+                    st.error(f"{count_sairam} remotas foram removidas")
+                    st.dataframe(df_remotas_sairam, use_container_width=True, height=300)
+                    st.download_button(
+                        "⬇️ Baixar Remotas_Sairam.xlsx",
+                        data=open("Remotas_Sairam.xlsx", "rb"),
+                        file_name="Remotas_Sairam.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                else:
+                    st.info("Nenhuma remota removida encontrada.")
+
+            st.download_button(
+                "⬇️ Baixar Atualizada.xlsx",
+                data=open("Atualizada.xlsx", "rb"),
+                file_name="Atualizada.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+            st.info(f"📘 Planilha final contém **{len(df_atualizada)} registros**.")
+
+            # ==============================
+            # 🧾 Registro histórico
+            # ==============================
+            data_hoje = datetime.now().strftime("%Y-%m-%d")
+            historico_path = "historico_comparacoes.xlsx"
+
+            if os.path.exists(historico_path):
+                historico = pd.read_excel(historico_path)
+            else:
+                historico = pd.DataFrame(columns=["Data", "Remotas que Entraram 😁", "Remotas que Saíram 🚀"])
+
+            novo_registro = pd.DataFrame({
+                "Data": [data_hoje],
+                "Remotas que Entraram 😁": [count_entraram],
+                "Remotas que Saíram 🚀": [count_sairam]
+            })
+
+            historico = pd.concat([historico, novo_registro], ignore_index=True)
+            historico.to_excel(historico_path, index=False)
+
+            # ==============================
+            # 📈 Gráfico de linha (histórico ajustável)
+            # ==============================
+            max_valor = max(historico[["Remotas que Entraram 😁", "Remotas que Saíram 🚀"]].max().max(), 20)
+
+            fig = px.line(
+                historico,
+                x="Data",
+                y=["Remotas que Entraram 😁", "Remotas que Saíram 🚀"],
+                markers=True,
+                title="📊 Evolução de Remotas — Entradas e Saídas ao Longo do Tempo",
+            )
+            fig.update_layout(
+                yaxis=dict(title="Quantidade de Remotas", range=[0, max_valor + 5]),
+                xaxis_title="Data",
+                legend_title="Categoria",
+                height=450
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+        except Exception as e:
+            st.error(f"❌ Erro ao processar o arquivo: {e}")
 
 # ===========================
 # DATA DE ATUALIZAÇÃO LOCAL
